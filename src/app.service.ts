@@ -1,7 +1,8 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
-import { POST_QUEUE } from './constants';
+import { POST_QUEUE, PUBLISH_POST } from './constants';
+import { Post } from './post';
 
 @Injectable()
 export class AppService {
@@ -11,17 +12,17 @@ export class AppService {
     return 'Hello World!';
   }
 
-  async processPost(postId: string, deadline: Date) {
-    const delay = deadline.getTime() - Date.now();
+  async processPost(post: Post) {
+    await this.addPostToQueue(post);
 
-    await this.postQueue.add(
-      'publishPost',
-      { postId, deadline },
-      { delay, attempts: 3 },
-    );
+    return `Post ${post.message} being pushed to the queue to be published at ${post.deadline}`;
+  }
 
-    console.log(
-      `Post ${postId} agregado a la cola para ser publicado en ${deadline}`,
-    );
+  private async addPostToQueue(post: Post): Promise<void> {
+    const delay = post.deadline.getTime() - Date.now();
+
+    await this.postQueue.add(PUBLISH_POST, post, { delay, attempts: 3 });
+
+    return;
   }
 }

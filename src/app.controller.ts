@@ -11,8 +11,12 @@ export class AppController {
   }
 
   @Post('post')
-  async post(@Body() body: { postId: string; deadline: string }) {
+  async post(@Body() body: { message: string; deadline: string }) {
     const deadline = new Date(body.deadline);
-    return this.appService.processPost(body.postId, deadline);
+
+    return this.appService.processPost({
+      message: body.message,
+      deadline: deadline,
+    });
   }
 }
